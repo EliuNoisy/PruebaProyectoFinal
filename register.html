@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link rel="stylesheet" href="css/register.css">
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <h1>Crear Cuenta</h1>
+            <p>Registrate para comenzar</p>
+            
+            <form id="registerForm">
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                
+                <div class="form-group">
+                    <label for="name">Nombre Completo</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        placeholder="Tu Nombre"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Correo Electronico</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="tu@email.com"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="itsonId">ID ITSON</label>
+                    <input 
+                        type="text" 
+                        id="itsonId" 
+                        placeholder="216578"
+                        maxlength="6"
+                        pattern="\d{6}"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contrasena</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="••••••••"
+                        minlength="6"
+                        required
+                    >
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    Registrarse
+                </button>
+            </form>
+            
+            <div class="text-center">
+                <p>Ya tienes cuenta? <a href="index.html">Inicia sesion</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/auth.js"></script>
+</body>
+</html>

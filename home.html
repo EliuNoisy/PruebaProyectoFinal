@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Panel de Proyectos</title>
+    <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <div class="welcome">
+                <h1>Bienvenido</h1>
+                <p id="userName">Panel de administracion</p>
+            </div>
+            
+            <div class="projects-header">
+                <h2>Mis Proyectos</h2>
+                <button class="btn btn-primary" id="addProjectBtn" onclick="document.getElementById('projectModal').classList.add('show'); document.body.style.overflow='hidden';">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Agregar Proyecto
+                </button>
+            </div>
+            
+            <div class="projects-grid" id="projectsGrid">
+                <div class="loading">Cargando proyectos...</div>
+            </div>
+            
+            <div class="logout-container">
+                <button type="button" class="btn btn-logout" id="logoutBtn" onclick="logout()">
+                    Cerrar Sesion
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para agregar/editar proyecto -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Agregar Proyecto</h2>
+                <button class="btn-close" id="closeModal" onclick="document.getElementById('projectModal').classList.remove('show'); document.body.style.overflow='auto'; document.getElementById('projectForm').reset();">&times;</button>
+            </div>
+            
+            <form id="projectForm">
+                <div class="form-group">
+                    <label for="title">Titulo del Proyecto</label>
+                    <input 
+                        type="text" 
+                        id="title" 
+                        placeholder="Ej: Sistema de Gestion"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Descripcion</label>
+                    <textarea 
+                        id="description" 
+                        rows="4"
+                        placeholder="Describe tu proyecto..."
+                        required
+                    ></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="technologiesInput">Tecnologias (separadas por comas)</label>
+                    <input 
+                        type="text" 
+                        id="technologiesInput" 
+                        placeholder="JavaScript, React, Node.js"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="repository">Repositorio (opcional)</label>
+                    <input 
+                        type="url" 
+                        id="repository" 
+                        placeholder="https://github.com/usuario/proyecto"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="imagesInput">Imagenes URLs (separadas por comas, opcional)</label>
+                    <input 
+                        type="text" 
+                        id="imagesInput" 
+                        placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg"
+                    >
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('projectModal').classList.remove('show'); document.body.style.overflow='auto'; document.getElementById('projectForm').reset();">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Crear Proyecto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+
+    <script src="js/auth.js"></script>
+    <script src="js/projects.js"></script>
+</body>
+</html>
