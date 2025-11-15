@@ -16,7 +16,7 @@
             
             <div class="projects-header">
                 <h2>Mis Proyectos</h2>
-                <button class="btn btn-primary" id="addProjectBtn" onclick="document.getElementById('projectModal').classList.add('show'); document.body.style.overflow='hidden';">
+                <button class="btn btn-primary" id="addProjectBtn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -30,7 +30,7 @@
             </div>
             
             <div class="logout-container">
-                <button type="button" class="btn btn-logout" id="logoutBtn" onclick="logout()">
+                <button type="button" class="btn btn-logout" id="logoutBtn">
                     Cerrar Sesion
                 </button>
             </div>
@@ -42,7 +42,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Agregar Proyecto</h2>
-                <button class="btn-close" id="closeModal" onclick="document.getElementById('projectModal').classList.remove('show'); document.body.style.overflow='auto'; document.getElementById('projectForm').reset();">&times;</button>
+                <button class="btn-close" id="closeModal">&times;</button>
             </div>
             
             <form id="projectForm">
@@ -94,7 +94,7 @@
                 </div>
                 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('projectModal').classList.remove('show'); document.body.style.overflow='auto'; document.getElementById('projectForm').reset();">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">
                         Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary">
@@ -105,7 +105,6 @@
         </div>
     </div>
     
-
     <script src="js/auth.js"></script>
     <script src="js/projects.js"></script>
 </body>

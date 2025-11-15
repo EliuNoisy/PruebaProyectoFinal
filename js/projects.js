@@ -10,35 +10,8 @@ const API_BASE = "https://portfolio-api-three-black.vercel.app/api/v1";
     }
 })();
 
-// Mostrar/Ocultar modal - DEFINIR PRIMERO
-function showModal() {
-    const modal = document.getElementById('projectModal');
-    if (modal) {
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function hideModal() {
-    const modal = document.getElementById('projectModal');
-    if (modal) {
-        modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
-        const form = document.getElementById('projectForm');
-        if (form) form.reset();
-        const techInput = document.getElementById('technologiesInput');
-        if (techInput) techInput.value = '';
-        const imgInput = document.getElementById('imagesInput');
-        if (imgInput) imgInput.value = '';
-        currentEditingProject = null;
-        const modalTitle = document.getElementById('modalTitle');
-        if (modalTitle) modalTitle.textContent = 'Agregar Proyecto';
-    }
-}
-
-// Hacer funciones globales INMEDIATAMENTE
-window.showModal = showModal;
-window.hideModal = hideModal;
+// Variable global para edicion
+let currentEditingProject = null;
 
 // Funciones de utilidad
 function getToken() {
@@ -74,6 +47,36 @@ function showNotification(message, type = 'error') {
     }, 3000);
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Funciones de Modal
+function showModal() {
+    const modal = document.getElementById('projectModal');
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function hideModal() {
+    const modal = document.getElementById('projectModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+        const form = document.getElementById('projectForm');
+        if (form) form.reset();
+        currentEditingProject = null;
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) modalTitle.textContent = 'Agregar Proyecto';
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = 'Crear Proyecto';
+    }
+}
+
 // API Functions para Proyectos
 async function getAllProjects() {
     try {
@@ -84,6 +87,15 @@ async function getAllProjects() {
                 'auth-token': token
             }
         });
+
+        if (response.status === 401) {
+            showNotification('Sesion expirada. Por favor inicia sesion nuevamente.', 'error');
+            setTimeout(() => {
+                localStorage.clear();
+                window.location.replace('index.html');
+            }, 2000);
+            throw new Error('Sesion expirada');
+        }
 
         if (!response.ok) {
             throw new Error('Error al obtener proyectos');
@@ -109,6 +121,15 @@ async function createProject(projectData) {
 
         const data = await response.json();
 
+        if (response.status === 401) {
+            showNotification('Sesion expirada. Por favor inicia sesion nuevamente.', 'error');
+            setTimeout(() => {
+                localStorage.clear();
+                window.location.replace('index.html');
+            }, 2000);
+            throw new Error('Sesion expirada');
+        }
+
         if (!response.ok) {
             throw new Error(data.message || 'Error al crear proyecto');
         }
@@ -133,6 +154,15 @@ async function updateProject(projectId, projectData) {
 
         const data = await response.json();
 
+        if (response.status === 401) {
+            showNotification('Sesion expirada. Por favor inicia sesion nuevamente.', 'error');
+            setTimeout(() => {
+                localStorage.clear();
+                window.location.replace('index.html');
+            }, 2000);
+            throw new Error('Sesion expirada');
+        }
+
         if (!response.ok) {
             throw new Error(data.message || 'Error al actualizar proyecto');
         }
@@ -155,6 +185,15 @@ async function deleteProject(projectId) {
 
         const data = await response.json();
 
+        if (response.status === 401) {
+            showNotification('Sesion expirada. Por favor inicia sesion nuevamente.', 'error');
+            setTimeout(() => {
+                localStorage.clear();
+                window.location.replace('index.html');
+            }, 2000);
+            throw new Error('Sesion expirada');
+        }
+
         if (!response.ok) {
             throw new Error(data.message || 'Error al eliminar proyecto');
         }
@@ -164,9 +203,6 @@ async function deleteProject(projectId) {
         throw error;
     }
 }
-
-// Variables globales
-let currentEditingProject = null;
 
 // Renderizar proyectos
 function renderProjects(projects) {
@@ -208,18 +244,12 @@ function renderProjects(projects) {
                 </div>
             ` : ''}
             ${project.repository ? `
-                <a href="${escapeHtml(project.repository)}" target="_blank" class="project-link">
+                <a href="${escapeHtml(project.repository)}" target="_blank" rel="noopener noreferrer" class="project-link">
                     Ver Repositorio
                 </a>
             ` : ''}
         </div>
     `).join('');
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // Cargar proyectos
@@ -228,10 +258,8 @@ async function loadProjects() {
     
     try {
         projectsGrid.innerHTML = '<div class="loading">Cargando proyectos...</div>';
-        console.log('Intentando cargar proyectos...');
         
         const projects = await getAllProjects();
-        console.log('Proyectos obtenidos:', projects);
         
         renderProjects(projects);
     } catch (error) {
@@ -259,12 +287,18 @@ async function editProject(projectId) {
         
         currentEditingProject = project;
         
+        console.log('Editando proyecto:', project);
+        console.log('currentEditingProject establecido:', currentEditingProject);
+        
         document.getElementById('modalTitle').textContent = 'Editar Proyecto';
         document.getElementById('title').value = project.title;
         document.getElementById('description').value = project.description;
         document.getElementById('repository').value = project.repository || '';
         document.getElementById('technologiesInput').value = project.technologies ? project.technologies.join(', ') : '';
         document.getElementById('imagesInput').value = project.images ? project.images.join(', ') : '';
+        
+        const submitBtn = document.querySelector('#projectForm button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = 'Actualizar Proyecto';
         
         showModal();
     } catch (error) {
@@ -296,6 +330,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cargar proyectos al iniciar
     loadProjects();
     
+    // Boton de agregar proyecto
+    const addProjectBtn = document.getElementById('addProjectBtn');
+    if (addProjectBtn) {
+        addProjectBtn.addEventListener('click', function() {
+            currentEditingProject = null;
+            document.getElementById('modalTitle').textContent = 'Agregar Proyecto';
+            const form = document.getElementById('projectForm');
+            if (form) form.reset();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.textContent = 'Crear Proyecto';
+            showModal();
+        });
+    }
+    
     // Cerrar modal al hacer clic fuera
     const modal = document.getElementById('projectModal');
     if (modal) {
@@ -306,21 +354,33 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Boton de cerrar modal
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            hideModal();
+        });
+    }
+    
+    // Boton de cancelar
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            hideModal();
+        });
+    }
+    
     // Formulario de proyecto
     const projectForm = document.getElementById('projectForm');
     if (projectForm) {
         projectForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            console.log('Formulario enviado');
-            
             const title = document.getElementById('title').value.trim();
             const description = document.getElementById('description').value.trim();
             const repository = document.getElementById('repository').value.trim();
             const technologiesInput = document.getElementById('technologiesInput').value.trim();
             const imagesInput = document.getElementById('imagesInput').value.trim();
-            
-            console.log('Datos del formulario:', {title, description, repository, technologiesInput, imagesInput});
             
             const technologies = technologiesInput 
                 ? technologiesInput.split(',').map(t => t.trim()).filter(t => t) 
@@ -335,67 +395,61 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            const user = getCurrentUser();
-            console.log('Usuario actual:', user);
-            
-            if (!user || !user.id) {
-                showNotification('Error: Usuario no encontrado. Vuelve a iniciar sesion.', 'error');
-                setTimeout(() => {
-                    localStorage.clear();
-                    window.location.replace('index.html');
-                }, 2000);
-                return;
-            }
-            
+            // Construir el objeto de datos del proyecto
             const projectData = {
                 title,
-                description,
-                userId: user.id,
-                technologies,
-                images
+                description
             };
             
+            // Solo agregar campos opcionales si tienen valores
             if (repository) {
                 projectData.repository = repository;
             }
             
-            console.log('Datos a enviar:', projectData);
+            if (technologies.length > 0) {
+                projectData.technologies = technologies;
+            }
+            
+            if (images.length > 0) {
+                projectData.images = images;
+            }
             
             const submitBtn = projectForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = currentEditingProject ? 'Actualizando...' : 'Creando...';
             
+            console.log('=== ANTES DE ENVIAR ===');
+            console.log('currentEditingProject:', currentEditingProject);
+            console.log('Datos a enviar:', projectData);
+            console.log('Es edicion?:', !!currentEditingProject);
+            console.log('=======================');
+            
             try {
                 if (currentEditingProject) {
-                    console.log('Actualizando proyecto:', currentEditingProject._id);
+                    console.log('Actualizando proyecto ID:', currentEditingProject._id);
                     await updateProject(currentEditingProject._id, projectData);
                     showNotification('Proyecto actualizado exitosamente', 'success');
                 } else {
                     console.log('Creando nuevo proyecto');
-                    const result = await createProject(projectData);
-                    console.log('Proyecto creado:', result);
+                    await createProject(projectData);
                     showNotification('Proyecto creado exitosamente', 'success');
                 }
                 
-                // Cerrar modal
-                document.getElementById('projectModal').classList.remove('show');
-                document.body.style.overflow = 'auto';
-                projectForm.reset();
-                currentEditingProject = null;
-                document.getElementById('modalTitle').textContent = 'Agregar Proyecto';
-                
+                hideModal();
                 await loadProjects();
             } catch (error) {
                 console.error('Error al guardar proyecto:', error);
                 showNotification(error.message, 'error');
-            } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = currentEditingProject ? 'Actualizar Proyecto' : 'Crear Proyecto';
+                submitBtn.textContent = originalText;
             }
         });
     }
 });
 
-// Hacer funciones globales
+// Exponer funciones globalmente
 window.editProject = editProject;
 window.confirmDeleteProject = confirmDeleteProject;
+window.showModal = showModal;
+window.hideModal = hideModal;

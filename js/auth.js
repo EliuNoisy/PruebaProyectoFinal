@@ -1,9 +1,11 @@
-// Funciones de utilidad
+// Funciones de utilidad para mensajes
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
     if (errorDiv) {
         errorDiv.textContent = message;
         errorDiv.style.display = 'block';
+        errorDiv.style.background = 'rgba(255, 87, 87, 0.2)';
+        errorDiv.style.borderColor = 'rgba(255, 87, 87, 0.5)';
         setTimeout(() => {
             errorDiv.style.display = 'none';
         }, 5000);
@@ -25,10 +27,19 @@ function showSuccess(message) {
     }
 }
 
-function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
-    window.location.replace('index.html');
+// Funcion para decodificar JWT
+function parseJWT(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error('Error al decodificar token:', error);
+        return null;
+    }
 }
 
 // Funciones de autenticacion
@@ -61,6 +72,7 @@ function isAuthenticated() {
     return !!getToken();
 }
 
+// Funcion de logout - UNICA DEFINICION
 function logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
@@ -125,8 +137,9 @@ async function loginUser(credentials) {
             throw new Error('Acceso no autorizado');
         }
         
+        // Mostrar nombre de usuario
         const user = getCurrentUser();
-        if (user) {
+        if (user && user.name) {
             const userNameElement = document.getElementById('userName');
             if (userNameElement) {
                 userNameElement.textContent = `Bienvenido ${user.name}`;
@@ -134,7 +147,7 @@ async function loginUser(credentials) {
         }
     }
     
-    // Redirigir si ya esta autenticado
+    // Redirigir si ya esta autenticado en paginas de login/register
     if (isAuthenticated() && (currentPage === 'index.html' || currentPage === 'register.html' || currentPage === '')) {
         window.location.replace('home.html');
         return;
@@ -159,18 +172,38 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const submitBtn = loginForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Iniciando sesion...';
             
             try {
                 const data = await loginUser({ email, password });
                 
-                // Guardar token y usuario
-                saveToken(data.token);
-                saveCurrentUser(data.user);
+                console.log('=== RESPUESTA DE LA API ===');
+                console.log('Data completa:', data);
+                console.log('Token:', data.token);
                 
-                console.log('Token guardado:', data.token);
-                console.log('Usuario guardado:', data.user);
+                // Guardar token
+                saveToken(data.token);
+                
+                // Decodificar el token para obtener los datos del usuario
+                const decoded = parseJWT(data.token);
+                console.log('Token decodificado:', decoded);
+                
+                if (!decoded || !decoded.user) {
+                    throw new Error('No se pudo obtener la informacion del usuario del token');
+                }
+                
+                // Guardar usuario desde el token decodificado
+                const user = decoded.user;
+                console.log('Usuario extraido del token:', user);
+                
+                saveCurrentUser(user);
+                
+                // Verificar que se guardo
+                const savedUser = getCurrentUser();
+                console.log('Usuario guardado en localStorage:', savedUser);
+                console.log('========================');
                 
                 showSuccess('Inicio de sesion exitoso');
                 
@@ -179,9 +212,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 1000);
                 
             } catch (error) {
+                console.error('Error en login:', error);
                 showError(error.message);
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Iniciar Sesion';
+                submitBtn.textContent = originalText;
             }
         });
     }
@@ -218,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const submitBtn = registerForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Registrando...';
             
@@ -236,9 +271,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 2000);
                 
             } catch (error) {
+                console.error('Error en registro:', error);
                 showError(error.message);
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Registrarse';
+                submitBtn.textContent = originalText;
             }
         });
     }
@@ -255,5 +291,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Exponer la funcion logout globalmente para debugging
+// Exponer funciones globalmente
 window.logout = logout;
+window.isAuthenticated = isAuthenticated;
